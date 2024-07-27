@@ -1,6 +1,8 @@
 ![plugin-sql](https://github.com/tauri-apps/plugins-workspace/raw/v1/plugins/sql/banner.png)
 
-Interface with SQL databases through [sqlx](https://github.com/launchbadge/sqlx). It supports the `sqlite`, `mysql` and `postgres` drivers, enabled by a Cargo feature.
+Interface with SQL databases through
+[sqlx](https://github.com/launchbadge/sqlx). It supports the `sqlite`, `mysql`
+and `postgres` drivers, enabled by a Cargo feature.
 
 ## Install
 
@@ -8,9 +10,12 @@ _This plugin requires a Rust version of at least **1.65**_
 
 There are three general methods of installation that we can recommend.
 
-1. Use crates.io and npm (easiest, and requires you to trust that our publishing pipeline worked)
-2. Pull sources directly from Github using git tags / revision hashes (most secure)
-3. Git submodule install this repo in your tauri project and then use file protocol to ingest the source (most secure, but inconvenient to use)
+1. Use crates.io and npm (easiest, and requires you to trust that our publishing
+   pipeline worked)
+2. Pull sources directly from Github using git tags / revision hashes (most
+   secure)
+3. Git submodule install this repo in your tauri project and then use file
+   protocol to ingest the source (most secure, but inconvenient to use)
 
 Install the Core plugin by adding the following to your `Cargo.toml` file:
 
@@ -20,12 +25,15 @@ Install the Core plugin by adding the following to your `Cargo.toml` file:
 [dependencies.tauri-plugin-sql]
 git = "https://github.com/tauri-apps/plugins-workspace"
 branch = "v1"
-features = ["sqlite"] # or "postgres", or "mysql"
+features = ["sqlite"]                                   # or "postgres", or "mysql"
 ```
 
-You can install the JavaScript Guest bindings using your preferred JavaScript package manager:
+You can install the JavaScript Guest bindings using your preferred JavaScript
+package manager:
 
-> Note: Since most JavaScript package managers are unable to install packages from git monorepos we provide read-only mirrors of each plugin. This makes installation option 2 more ergonomic to use.
+> Note: Since most JavaScript package managers are unable to install packages
+> from git monorepos we provide read-only mirrors of each plugin. This makes
+> installation option 2 more ergonomic to use.
 
 ```sh
 pnpm add https://github.com/tauri-apps/tauri-plugin-sql#v1
@@ -50,7 +58,8 @@ fn main() {
 }
 ```
 
-Afterwards all the plugin's APIs are available through the JavaScript guest bindings:
+Afterwards all the plugin's APIs are available through the JavaScript guest
+bindings:
 
 ```javascript
 import Database from "tauri-plugin-sql-api";
@@ -69,40 +78,43 @@ await db.execute("INSERT INTO ...");
 
 We use sqlx as our underlying library, adopting their query syntax:
 
-- sqlite and postgres use the "$#" syntax when substituting query data
-- mysql uses "?" when substituting query data
+-   sqlite and postgres use the "$#" syntax when substituting query data
+-   mysql uses "?" when substituting query data
 
 ```javascript
 // INSERT and UPDATE examples for sqlite and postgres
 const result = await db.execute(
-  "INSERT into todos (id, title, status) VALUES ($1, $2, $3)",
-  [todos.id, todos.title, todos.status],
+	"INSERT into todos (id, title, status) VALUES ($1, $2, $3)",
+	[todos.id, todos.title, todos.status],
 );
 
 const result = await db.execute(
-  "UPDATE todos SET title = $1, completed = $2 WHERE id = $3",
-  [todos.title, todos.status, todos.id],
+	"UPDATE todos SET title = $1, completed = $2 WHERE id = $3",
+	[todos.title, todos.status, todos.id],
 );
 
 // INSERT and UPDATE examples for mysql
 const result = await db.execute(
-  "INSERT into todos (id, title, status) VALUES (?, ?, ?)",
-  [todos.id, todos.title, todos.status],
+	"INSERT into todos (id, title, status) VALUES (?, ?, ?)",
+	[todos.id, todos.title, todos.status],
 );
 
 const result = await db.execute(
-  "UPDATE todos SET title = ?, completed = ? WHERE id = ?",
-  [todos.title, todos.status, todos.id],
+	"UPDATE todos SET title = ?, completed = ? WHERE id = ?",
+	[todos.title, todos.status, todos.id],
 );
 ```
 
 ## Migrations
 
-This plugin supports database migrations, allowing you to manage database schema evolution over time.
+This plugin supports database migrations, allowing you to manage database schema
+evolution over time.
 
 ### Defining Migrations
 
-Migrations are defined in Rust using the `Migration` struct. Each migration should include a unique version number, a description, the SQL to be executed, and the type of migration (Up or Down).
+Migrations are defined in Rust using the `Migration` struct. Each migration
+should include a unique version number, a description, the SQL to be executed,
+and the type of migration (Up or Down).
 
 Example of a migration:
 
@@ -119,7 +131,9 @@ let migration = Migration {
 
 ### Adding Migrations to the Plugin Builder
 
-Migrations are registered with the `Builder` struct provided by the plugin. Use the `add_migrations` method to add your migrations to the plugin for a specific database connection.
+Migrations are registered with the `Builder` struct provided by the plugin. Use
+the `add_migrations` method to add your migrations to the plugin for a specific
+database connection.
 
 Example of adding migrations:
 
@@ -149,17 +163,24 @@ fn main() {
 
 ### Applying Migrations
 
-Migrations are applied automatically when the plugin is initialized. The plugin runs these migrations against the database specified by the connection string. Ensure that the migrations are defined in the correct order and are idempotent (safe to run multiple times).
+Migrations are applied automatically when the plugin is initialized. The plugin
+runs these migrations against the database specified by the connection string.
+Ensure that the migrations are defined in the correct order and are idempotent
+(safe to run multiple times).
 
 ### Migration Management
 
-- **Version Control**: Each migration must have a unique version number. This is crucial for ensuring the migrations are applied in the correct order.
-- **Idempotency**: Write migrations in a way that they can be safely re-run without causing errors or unintended consequences.
-- **Testing**: Thoroughly test migrations to ensure they work as expected and do not compromise the integrity of your database.
+-   **Version Control**: Each migration must have a unique version number. This
+    is crucial for ensuring the migrations are applied in the correct order.
+-   **Idempotency**: Write migrations in a way that they can be safely re-run
+    without causing errors or unintended consequences.
+-   **Testing**: Thoroughly test migrations to ensure they work as expected and
+    do not compromise the integrity of your database.
 
 ## Contributing
 
-PRs accepted. Please make sure to read the Contributing Guide before making a pull request.
+PRs accepted. Please make sure to read the Contributing Guide before making a
+pull request.
 
 ## Partners
 
@@ -175,7 +196,9 @@ PRs accepted. Please make sure to read the Contributing Guide before making a pu
   </tbody>
 </table>
 
-For the complete list of sponsors please visit our [website](https://tauri.app#sponsors) and [Open Collective](https://opencollective.com/tauri).
+For the complete list of sponsors please visit our
+[website](https://tauri.app#sponsors) and
+[Open Collective](https://opencollective.com/tauri).
 
 ## License
 
