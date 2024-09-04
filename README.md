@@ -6,7 +6,7 @@ and `postgres` drivers, enabled by a Cargo feature.
 
 ## Install
 
-_This plugin requires a Rust version of at least **1.65**_
+_This plugin requires a Rust version of at least **1.80**_
 
 There are three general methods of installation that we can recommend.
 
