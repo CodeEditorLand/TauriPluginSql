@@ -1,5 +1,15 @@
 {
+<<<<<<< HEAD
 	"name": "tauri-plugin-sql-api",
+=======
+	"authors": [
+		"Tauri Programme within The Commons Conservancy"
+	],
+	"browser": "dist-js/index.min.js",
+	"dependencies": {
+		"@tauri-apps/api": "2.0.0-rc.5"
+	},
+>>>>>>> becee48933be1330e0266ccf5ae7d9c3fd42d091
 	"description": "Interface with SQL databases",
 	"exports": {
 		"browser": "./dist-js/index.min.js",
