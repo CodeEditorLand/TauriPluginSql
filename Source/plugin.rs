@@ -2,27 +2,36 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
+use std::collections::HashMap;
+#[cfg(feature = "sqlite")]
+use std::{fs::create_dir_all, path::PathBuf};
+
 use futures_core::future::BoxFuture;
 use serde::{ser::Serializer, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 use sqlx::{
 	error::BoxDynError,
 	migrate::{
-		MigrateDatabase, Migration as SqlxMigration, MigrationSource, MigrationType, Migrator,
+		MigrateDatabase,
+		Migration as SqlxMigration,
+		MigrationSource,
+		MigrationType,
+		Migrator,
 	},
-	Column, Pool, Row,
+	Column,
+	Pool,
+	Row,
 };
 use tauri::{
 	command,
 	plugin::{Builder as PluginBuilder, TauriPlugin},
-	AppHandle, Manager, RunEvent, Runtime, State,
+	AppHandle,
+	Manager,
+	RunEvent,
+	Runtime,
+	State,
 };
 use tokio::sync::Mutex;
-
-use std::collections::HashMap;
-
-#[cfg(feature = "sqlite")]
-use std::{fs::create_dir_all, path::PathBuf};
 
 #[cfg(feature = "sqlite")]
 type Db = sqlx::sqlite::Sqlite;
@@ -49,10 +58,12 @@ pub enum Error {
 }
 
 impl Serialize for Error {
-	fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+	fn serialize<S>(
+		&self,
+		serializer:S,
+	) -> std::result::Result<S::Ok, S::Error>
 	where
-		S: Serializer,
-	{
+		S: Serializer, {
 		serializer.serialize_str(self.to_string().as_ref())
 	}
 }
@@ -62,7 +73,7 @@ type Result<T> = std::result::Result<T, Error>;
 #[cfg(feature = "sqlite")]
 /// Resolves the App's **file path** from the `AppHandle` context
 /// object
-fn app_path<R: Runtime>(app: &AppHandle<R>) -> PathBuf {
+fn app_path<R:Runtime>(app:&AppHandle<R>) -> PathBuf {
 	#[allow(deprecated)] // FIXME: Change to non-deprecated function in Tauri v2
 	app.path_resolver().app_dir().expect("No App path was found!")
 }
@@ -70,14 +81,19 @@ fn app_path<R: Runtime>(app: &AppHandle<R>) -> PathBuf {
 #[cfg(feature = "sqlite")]
 /// Maps the user supplied DB connection string to a connection string
 /// with a fully qualified file path to the App's designed "app_path"
-fn path_mapper(mut app_path: PathBuf, connection_string: &str) -> String {
+fn path_mapper(mut app_path:PathBuf, connection_string:&str) -> String {
 	app_path.push(
-		connection_string.split_once(':').expect("Couldn't parse the connection string for DB!").1,
+		connection_string
+			.split_once(':')
+			.expect("Couldn't parse the connection string for DB!")
+			.1,
 	);
 
 	format!(
 		"sqlite:{}",
-		app_path.to_str().expect("Problem creating fully qualified path to Database file!")
+		app_path
+			.to_str()
+			.expect("Problem creating fully qualified path to Database file!")
 	)
 }
 
@@ -89,7 +105,7 @@ struct Migrations(Mutex<HashMap<String, MigrationList>>);
 #[derive(Default, Deserialize)]
 pub struct PluginConfig {
 	#[serde(default)]
-	preload: Vec<String>,
+	preload:Vec<String>,
 }
 
 #[derive(Debug)]
@@ -99,7 +115,7 @@ pub enum MigrationKind {
 }
 
 impl From<MigrationKind> for MigrationType {
-	fn from(kind: MigrationKind) -> Self {
+	fn from(kind:MigrationKind) -> Self {
 		match kind {
 			MigrationKind::Up => Self::ReversibleUp,
 			MigrationKind::Down => Self::ReversibleDown,
@@ -110,17 +126,20 @@ impl From<MigrationKind> for MigrationType {
 /// A migration definition.
 #[derive(Debug)]
 pub struct Migration {
-	pub version: i64,
-	pub description: &'static str,
-	pub sql: &'static str,
-	pub kind: MigrationKind,
+	pub version:i64,
+	pub description:&'static str,
+	pub sql:&'static str,
+	pub kind:MigrationKind,
 }
 
 #[derive(Debug)]
 struct MigrationList(Vec<Migration>);
 
 impl MigrationSource<'static> for MigrationList {
-	fn resolve(self) -> BoxFuture<'static, std::result::Result<Vec<SqlxMigration>, BoxDynError>> {
+	fn resolve(
+		self,
+	) -> BoxFuture<'static, std::result::Result<Vec<SqlxMigration>, BoxDynError>>
+	{
 		Box::pin(async move {
 			let mut migrations = Vec::new();
 			for migration in self.0 {
@@ -140,11 +159,11 @@ impl MigrationSource<'static> for MigrationList {
 }
 
 #[command]
-async fn load<R: Runtime>(
-	#[allow(unused_variables)] app: AppHandle<R>,
-	db_instances: State<'_, DbInstances>,
-	migrations: State<'_, Migrations>,
-	db: String,
+async fn load<R:Runtime>(
+	#[allow(unused_variables)] app:AppHandle<R>,
+	db_instances:State<'_, DbInstances>,
+	migrations:State<'_, Migrations>,
+	db:String,
 ) -> Result<String> {
 	#[cfg(feature = "sqlite")]
 	let fqdb = path_mapper(app_path(&app), &db);
@@ -172,13 +191,21 @@ async fn load<R: Runtime>(
 /// name is passed in then _all_ database connection pools will be
 /// shut down.
 #[command]
-async fn close(db_instances: State<'_, DbInstances>, db: Option<String>) -> Result<bool> {
+async fn close(
+	db_instances:State<'_, DbInstances>,
+	db:Option<String>,
+) -> Result<bool> {
 	let mut instances = db_instances.0.lock().await;
 
-	let pools = if let Some(db) = db { vec![db] } else { instances.keys().cloned().collect() };
+	let pools = if let Some(db) = db {
+		vec![db]
+	} else {
+		instances.keys().cloned().collect()
+	};
 
 	for pool in pools {
-		let db = instances.get_mut(&pool).ok_or(Error::DatabaseNotLoaded(pool))?;
+		let db =
+			instances.get_mut(&pool).ok_or(Error::DatabaseNotLoaded(pool))?;
 		db.close().await;
 	}
 
@@ -188,10 +215,10 @@ async fn close(db_instances: State<'_, DbInstances>, db: Option<String>) -> Resu
 /// Execute a command against the database
 #[command]
 async fn execute(
-	db_instances: State<'_, DbInstances>,
-	db: String,
-	query: String,
-	values: Vec<JsonValue>,
+	db_instances:State<'_, DbInstances>,
+	db:String,
+	query:String,
+	values:Vec<JsonValue>,
 ) -> Result<(u64, LastInsertId)> {
 	let mut instances = db_instances.0.lock().await;
 
@@ -218,10 +245,10 @@ async fn execute(
 
 #[command]
 async fn select(
-	db_instances: State<'_, DbInstances>,
-	db: String,
-	query: String,
-	values: Vec<JsonValue>,
+	db_instances:State<'_, DbInstances>,
+	db:String,
+	query:String,
+	values:Vec<JsonValue>,
 ) -> Result<Vec<HashMap<String, JsonValue>>> {
 	let mut instances = db_instances.0.lock().await;
 	let db = instances.get_mut(&db).ok_or(Error::DatabaseNotLoaded(db))?;
@@ -256,27 +283,34 @@ async fn select(
 /// Tauri SQL plugin builder.
 #[derive(Default)]
 pub struct Builder {
-	migrations: Option<HashMap<String, MigrationList>>,
+	migrations:Option<HashMap<String, MigrationList>>,
 }
 
 impl Builder {
 	/// Add migrations to a database.
 	#[must_use]
-	pub fn add_migrations(mut self, db_url: &str, migrations: Vec<Migration>) -> Self {
+	pub fn add_migrations(
+		mut self,
+		db_url:&str,
+		migrations:Vec<Migration>,
+	) -> Self {
 		self.migrations
 			.get_or_insert(Default::default())
 			.insert(db_url.to_string(), MigrationList(migrations));
 		self
 	}
 
-	pub fn build<R: Runtime>(mut self) -> TauriPlugin<R, Option<PluginConfig>> {
+	pub fn build<R:Runtime>(mut self) -> TauriPlugin<R, Option<PluginConfig>> {
 		PluginBuilder::new("sql")
-			.invoke_handler(tauri::generate_handler![load, execute, select, close])
-			.setup_with_config(|app, config: Option<PluginConfig>| {
+			.invoke_handler(tauri::generate_handler![
+				load, execute, select, close
+			])
+			.setup_with_config(|app, config:Option<PluginConfig>| {
 				let config = config.unwrap_or_default();
 
 				#[cfg(feature = "sqlite")]
-				create_dir_all(app_path(app)).expect("problems creating App directory!");
+				create_dir_all(app_path(app))
+					.expect("problems creating App directory!");
 
 				tauri::async_runtime::block_on(async move {
 					let instances = DbInstances::default();
@@ -292,7 +326,9 @@ impl Builder {
 						}
 						let pool = Pool::connect(&fqdb).await?;
 
-						if let Some(migrations) = self.migrations.as_mut().unwrap().remove(&db) {
+						if let Some(migrations) =
+							self.migrations.as_mut().unwrap().remove(&db)
+						{
 							let migrator = Migrator::new(migrations).await?;
 							migrator.run(&pool).await?;
 						}
@@ -301,7 +337,9 @@ impl Builder {
 					drop(lock);
 
 					app.manage(instances);
-					app.manage(Migrations(Mutex::new(self.migrations.take().unwrap_or_default())));
+					app.manage(Migrations(Mutex::new(
+						self.migrations.take().unwrap_or_default(),
+					)));
 
 					Ok(())
 				})
