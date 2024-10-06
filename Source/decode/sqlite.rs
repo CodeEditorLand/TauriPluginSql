@@ -61,20 +61,14 @@ pub(crate) fn to_json(v:SqliteValueRef) -> Result<JsonValue, Error> {
 		},
 		"BLOB" => {
 			if let Ok(v) = v.to_owned().try_decode::<Vec<u8>>() {
-				JsonValue::Array(
-					v.into_iter()
-						.map(|n| JsonValue::Number(n.into()))
-						.collect(),
-				)
+				JsonValue::Array(v.into_iter().map(|n| JsonValue::Number(n.into())).collect())
 			} else {
 				JsonValue::Null
 			}
 		},
 		"NULL" => JsonValue::Null,
 		_ => {
-			return Err(Error::UnsupportedDatatype(
-				v.type_info().name().to_string(),
-			));
+			return Err(Error::UnsupportedDatatype(v.type_info().name().to_string()));
 		},
 	};
 

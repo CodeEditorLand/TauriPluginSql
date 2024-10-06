@@ -74,41 +74,30 @@ pub(crate) fn to_json(v:PgValueRef) -> Result<JsonValue, Error> {
 			}
 		},
 		"TIMESTAMP" => {
-			if let Ok(v) =
-				ValueRef::to_owned(&v).try_decode::<PrimitiveDateTime>()
-			{
+			if let Ok(v) = ValueRef::to_owned(&v).try_decode::<PrimitiveDateTime>() {
 				JsonValue::String(v.to_string())
 			} else {
 				JsonValue::Null
 			}
 		},
 		"TIMESTAMPTZ" => {
-			if let Ok(v) = ValueRef::to_owned(&v).try_decode::<OffsetDateTime>()
-			{
+			if let Ok(v) = ValueRef::to_owned(&v).try_decode::<OffsetDateTime>() {
 				JsonValue::String(v.to_string())
 			} else {
 				JsonValue::Null
 			}
 		},
-		"JSON" | "JSONB" => {
-			ValueRef::to_owned(&v).try_decode().unwrap_or_default()
-		},
+		"JSON" | "JSONB" => ValueRef::to_owned(&v).try_decode().unwrap_or_default(),
 		"BYTEA" => {
 			if let Ok(v) = ValueRef::to_owned(&v).try_decode::<Vec<u8>>() {
-				JsonValue::Array(
-					v.into_iter()
-						.map(|n| JsonValue::Number(n.into()))
-						.collect(),
-				)
+				JsonValue::Array(v.into_iter().map(|n| JsonValue::Number(n.into())).collect())
 			} else {
 				JsonValue::Null
 			}
 		},
 		"VOID" => JsonValue::Null,
 		_ => {
-			return Err(Error::UnsupportedDatatype(
-				v.type_info().name().to_string(),
-			));
+			return Err(Error::UnsupportedDatatype(v.type_info().name().to_string()));
 		},
 	};
 

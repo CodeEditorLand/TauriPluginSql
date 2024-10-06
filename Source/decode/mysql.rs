@@ -10,8 +10,7 @@ pub(crate) fn to_json(v:MySqlValueRef) -> Result<JsonValue, Error> {
 	}
 
 	let res = match v.type_info().name() {
-		"CHAR" | "VARCHAR" | "TINYTEXT" | "TEXT" | "MEDIUMTEXT"
-		| "LONGTEXT" | "ENUM" => {
+		"CHAR" | "VARCHAR" | "TINYTEXT" | "TEXT" | "MEDIUMTEXT" | "LONGTEXT" | "ENUM" => {
 			if let Ok(v) = ValueRef::to_owned(&v).try_decode() {
 				JsonValue::String(v)
 			} else {
@@ -39,8 +38,8 @@ pub(crate) fn to_json(v:MySqlValueRef) -> Result<JsonValue, Error> {
 				JsonValue::Null
 			}
 		},
-		"TINYINT UNSIGNED" | "SMALLINT UNSIGNED" | "INT UNSIGNED"
-		| "MEDIUMINT UNSIGNED" | "BIGINT UNSIGNED" | "YEAR" => {
+		"TINYINT UNSIGNED" | "SMALLINT UNSIGNED" | "INT UNSIGNED" | "MEDIUMINT UNSIGNED"
+		| "BIGINT UNSIGNED" | "YEAR" => {
 			if let Ok(v) = ValueRef::to_owned(&v).try_decode::<u64>() {
 				JsonValue::Number(v.into())
 			} else {
@@ -69,17 +68,14 @@ pub(crate) fn to_json(v:MySqlValueRef) -> Result<JsonValue, Error> {
 			}
 		},
 		"DATETIME" => {
-			if let Ok(v) =
-				ValueRef::to_owned(&v).try_decode::<PrimitiveDateTime>()
-			{
+			if let Ok(v) = ValueRef::to_owned(&v).try_decode::<PrimitiveDateTime>() {
 				JsonValue::String(v.to_string())
 			} else {
 				JsonValue::Null
 			}
 		},
 		"TIMESTAMP" => {
-			if let Ok(v) = ValueRef::to_owned(&v).try_decode::<OffsetDateTime>()
-			{
+			if let Ok(v) = ValueRef::to_owned(&v).try_decode::<OffsetDateTime>() {
 				JsonValue::String(v.to_string())
 			} else {
 				JsonValue::Null
@@ -88,20 +84,14 @@ pub(crate) fn to_json(v:MySqlValueRef) -> Result<JsonValue, Error> {
 		"JSON" => ValueRef::to_owned(&v).try_decode().unwrap_or_default(),
 		"TINIYBLOB" | "MEDIUMBLOB" | "BLOB" | "LONGBLOB" => {
 			if let Ok(v) = ValueRef::to_owned(&v).try_decode::<Vec<u8>>() {
-				JsonValue::Array(
-					v.into_iter()
-						.map(|n| JsonValue::Number(n.into()))
-						.collect(),
-				)
+				JsonValue::Array(v.into_iter().map(|n| JsonValue::Number(n.into())).collect())
 			} else {
 				JsonValue::Null
 			}
 		},
 		"NULL" => JsonValue::Null,
 		_ => {
-			return Err(Error::UnsupportedDatatype(
-				v.type_info().name().to_string(),
-			));
+			return Err(Error::UnsupportedDatatype(v.type_info().name().to_string()));
 		},
 	};
 
