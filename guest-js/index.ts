@@ -22,6 +22,7 @@ export interface QueryResult {
  */
 export default class Database {
 	path: string;
+
 	constructor(path: string) {
 		this.path = path;
 	}
@@ -110,6 +111,7 @@ export default class Database {
 				values: bindValues ?? [],
 			},
 		);
+
 		return {
 			lastInsertId,
 			rowsAffected,
@@ -158,6 +160,7 @@ export default class Database {
 		const success = await invoke<boolean>("plugin:sql|close", {
 			db,
 		});
+
 		return success;
 	}
 }

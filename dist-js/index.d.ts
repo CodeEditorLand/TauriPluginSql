@@ -19,6 +19,7 @@ export interface QueryResult {
  */
 export default class Database {
 	path: string;
+
 	constructor(path: string);
 	/**
 	 * **load**
