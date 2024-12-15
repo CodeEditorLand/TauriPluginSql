@@ -1,5 +1,5 @@
 use serde_json::Value as JsonValue;
-use sqlx::{postgres::PgValueRef, TypeInfo, Value, ValueRef};
+use sqlx::{TypeInfo, Value, ValueRef, postgres::PgValueRef};
 use time::{Date, OffsetDateTime, PrimitiveDateTime, Time};
 
 use crate::Error;

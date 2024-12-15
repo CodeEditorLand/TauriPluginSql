@@ -1,5 +1,5 @@
 use serde_json::Value as JsonValue;
-use sqlx::{mysql::MySqlValueRef, TypeInfo, Value, ValueRef};
+use sqlx::{TypeInfo, Value, ValueRef, mysql::MySqlValueRef};
 use time::{Date, OffsetDateTime, PrimitiveDateTime, Time};
 
 use crate::Error;
